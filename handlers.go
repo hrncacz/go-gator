@@ -92,3 +92,27 @@ func handlerAgg(s *config.State, cmd command.Command) error {
 	fmt.Println(feed)
 	return nil
 }
+
+func handlerAddFeed(s *config.State, cmd command.Command) error {
+	if len(cmd.Args) > 2 {
+		return errors.New("too many arguments for login command")
+	} else if len(cmd.Args) < 2 {
+		return errors.New("not enough arguments")
+	}
+	user, err := s.DB.SelectUser(context.Background(), s.Cfg.CurrentUserName)
+	if err != nil {
+		return errors.New("user was not found")
+	}
+
+	feed, err := s.DB.CreateFeed(context.Background(), database.CreateFeedParams{
+		Name:   cmd.Args[0],
+		Url:    cmd.Args[1],
+		UserID: user.ID,
+	})
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(feed)
+	return nil
+}
