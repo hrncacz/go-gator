@@ -43,3 +43,62 @@ func (q *Queries) CreateFeed(ctx context.Context, arg CreateFeedParams) (Feed, e
 	)
 	return i, err
 }
+
+const selectAllFeedsWithUsername = `-- name: SelectAllFeedsWithUsername :many
+SELECT 
+	feeds.name,
+	feeds.url,
+	users.name as username
+FROM feeds
+	INNER JOIN users
+	ON feeds.user_id = users.id
+`
+
+type SelectAllFeedsWithUsernameRow struct {
+	Name     string
+	Url      string
+	Username string
+}
+
+func (q *Queries) SelectAllFeedsWithUsername(ctx context.Context) ([]SelectAllFeedsWithUsernameRow, error) {
+	rows, err := q.db.QueryContext(ctx, selectAllFeedsWithUsername)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []SelectAllFeedsWithUsernameRow
+	for rows.Next() {
+		var i SelectAllFeedsWithUsernameRow
+		if err := rows.Scan(&i.Name, &i.Url, &i.Username); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const selectFeedByUrl = `-- name: SelectFeedByUrl :one
+SELECT id, created_at, updated_at, name, url, user_id
+	FROM feeds
+	WHERE feeds.url = $1
+`
+
+func (q *Queries) SelectFeedByUrl(ctx context.Context, url string) (Feed, error) {
+	row := q.db.QueryRowContext(ctx, selectFeedByUrl, url)
+	var i Feed
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Name,
+		&i.Url,
+		&i.UserID,
+	)
+	return i, err
+}

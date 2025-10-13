@@ -112,7 +112,68 @@ func handlerAddFeed(s *config.State, cmd command.Command) error {
 	if err != nil {
 		return err
 	}
-
+	_, err = s.DB.CreateFeedFollow(context.Background(), database.CreateFeedFollowParams{
+		UserID: user.ID,
+		FeedID: feed.ID,
+	})
+	if err != nil {
+		return err
+	}
 	fmt.Println(feed)
+	return nil
+}
+
+func handlerFeeds(s *config.State, cmd command.Command) error {
+	if len(cmd.Args) > 0 {
+		return errors.New("too many arguments for login command")
+	}
+	feeds, err := s.DB.SelectAllFeedsWithUsername(context.Background())
+	if err != nil {
+		return err
+	}
+	fmt.Println(feeds)
+	return nil
+}
+
+func handlerFollow(s *config.State, cmd command.Command) error {
+	if len(cmd.Args) > 1 {
+		return errors.New("too many arguments for login command")
+	} else if len(cmd.Args) < 1 {
+		return errors.New("not enough arguments")
+	}
+	user, err := s.DB.SelectUser(context.Background(), s.Cfg.CurrentUserName)
+	if err != nil {
+		return errors.New("user was not found")
+	}
+	feed, err := s.DB.SelectFeedByUrl(context.Background(), cmd.Args[0])
+	if err != nil {
+		return errors.New("feed was not found")
+	}
+	_, err = s.DB.CreateFeedFollow(context.Background(), database.CreateFeedFollowParams{
+		UserID: user.ID,
+		FeedID: feed.ID,
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func handlerFollowing(s *config.State, cmd command.Command) error {
+	if len(cmd.Args) > 0 {
+		return errors.New("too many arguments for login command")
+	}
+	user, err := s.DB.SelectUser(context.Background(), s.Cfg.CurrentUserName)
+	if err != nil {
+		return errors.New("user was not found")
+	}
+	feedFollows, err := s.DB.SelectAllFeedFollowsForUser(context.Background(), user.ID)
+	if err != nil {
+		return err
+	}
+	for _, item := range feedFollows {
+		fmt.Println(item.Name)
+	}
 	return nil
 }

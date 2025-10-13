@@ -26,6 +26,9 @@ func main() {
 	cmd.Register("users", handlerUsers)
 	cmd.Register("agg", handlerAgg)
 	cmd.Register("addfeed", handlerAddFeed)
+	cmd.Register("feeds", handlerFeeds)
+	cmd.Register("follow", handlerFollow)
+	cmd.Register("following", handlerFollowing)
 	if len(os.Args) < 2 {
 		fmt.Println("not enough arguments")
 		os.Exit(1)
@@ -41,6 +44,5 @@ func main() {
 		Args: os.Args[2:],
 	}
 	cmd.Run(state, userCommand)
-	fmt.Println(cfg)
 	os.Exit(0)
 }
