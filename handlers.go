@@ -171,19 +171,30 @@ func handlerFollow(s *config.State, cmd command.Command, user database.User) err
 }
 
 func handlerFollowing(s *config.State, cmd command.Command, user database.User) error {
-	if len(cmd.Args) > 0 {
+	if len(cmd.Args) > 1 {
 		return errors.New("too many arguments for login command")
 	}
-	// user, err := s.DB.SelectUser(context.Background(), s.Cfg.CurrentUserName)
-	// if err != nil {
-	// 	return errors.New("user was not found")
-	// }
 	feedFollows, err := s.DB.SelectAllFeedFollowsForUser(context.Background(), user.ID)
 	if err != nil {
 		return err
 	}
 	for _, item := range feedFollows {
 		fmt.Println(item.Name)
+	}
+	return nil
+}
+
+func handlerUnfollow(s *config.State, cmd command.Command, user database.User) error {
+	if len(cmd.Args) > 1 {
+		return errors.New("too many arguments for login command")
+	}
+	feed, err := s.DB.SelectFeedByUrl(context.Background(), cmd.Args[0])
+	if err != nil {
+		return err
+	}
+	err = s.DB.RemoveFeedFollow(context.Background(), database.RemoveFeedFollowParams{UserID: user.ID, FeedID: feed.ID})
+	if err != nil {
+		return err
 	}
 	return nil
 }
