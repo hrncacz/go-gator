@@ -13,6 +13,16 @@ import (
 	"github.com/hrncacz/go-gator/internal/rss"
 )
 
+func middlewareLoggedIn(handler func(state *config.State, cmd command.Command, user database.User) error) func(*config.State, command.Command) error {
+	return func(s *config.State, cmd command.Command) error {
+		user, err := s.DB.SelectUser(context.Background(), s.Cfg.CurrentUserName)
+		if err != nil {
+			return errors.New("user not found")
+		}
+		return handler(s, cmd, user)
+	}
+}
+
 func handlerLogin(s *config.State, cmd command.Command) error {
 	if len(cmd.Args) < 1 {
 		return errors.New("missing arguments for login command")
@@ -93,16 +103,16 @@ func handlerAgg(s *config.State, cmd command.Command) error {
 	return nil
 }
 
-func handlerAddFeed(s *config.State, cmd command.Command) error {
+func handlerAddFeed(s *config.State, cmd command.Command, user database.User) error {
 	if len(cmd.Args) > 2 {
 		return errors.New("too many arguments for login command")
 	} else if len(cmd.Args) < 2 {
 		return errors.New("not enough arguments")
 	}
-	user, err := s.DB.SelectUser(context.Background(), s.Cfg.CurrentUserName)
-	if err != nil {
-		return errors.New("user was not found")
-	}
+	// user, err := s.DB.SelectUser(context.Background(), s.Cfg.CurrentUserName)
+	// if err != nil {
+	// 	return errors.New("user was not found")
+	// }
 
 	feed, err := s.DB.CreateFeed(context.Background(), database.CreateFeedParams{
 		Name:   cmd.Args[0],
@@ -135,16 +145,16 @@ func handlerFeeds(s *config.State, cmd command.Command) error {
 	return nil
 }
 
-func handlerFollow(s *config.State, cmd command.Command) error {
+func handlerFollow(s *config.State, cmd command.Command, user database.User) error {
 	if len(cmd.Args) > 1 {
 		return errors.New("too many arguments for login command")
 	} else if len(cmd.Args) < 1 {
 		return errors.New("not enough arguments")
 	}
-	user, err := s.DB.SelectUser(context.Background(), s.Cfg.CurrentUserName)
-	if err != nil {
-		return errors.New("user was not found")
-	}
+	// user, err := s.DB.SelectUser(context.Background(), s.Cfg.CurrentUserName)
+	// if err != nil {
+	// 	return errors.New("user was not found")
+	// }
 	feed, err := s.DB.SelectFeedByUrl(context.Background(), cmd.Args[0])
 	if err != nil {
 		return errors.New("feed was not found")
@@ -160,14 +170,14 @@ func handlerFollow(s *config.State, cmd command.Command) error {
 	return nil
 }
 
-func handlerFollowing(s *config.State, cmd command.Command) error {
+func handlerFollowing(s *config.State, cmd command.Command, user database.User) error {
 	if len(cmd.Args) > 0 {
 		return errors.New("too many arguments for login command")
 	}
-	user, err := s.DB.SelectUser(context.Background(), s.Cfg.CurrentUserName)
-	if err != nil {
-		return errors.New("user was not found")
-	}
+	// user, err := s.DB.SelectUser(context.Background(), s.Cfg.CurrentUserName)
+	// if err != nil {
+	// 	return errors.New("user was not found")
+	// }
 	feedFollows, err := s.DB.SelectAllFeedFollowsForUser(context.Background(), user.ID)
 	if err != nil {
 		return err
