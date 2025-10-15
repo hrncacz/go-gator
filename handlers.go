@@ -170,7 +170,7 @@ func handlerFollow(s *config.State, cmd command.Command, user database.User) err
 }
 
 func handlerFollowing(s *config.State, cmd command.Command, user database.User) error {
-	if len(cmd.Args) > 1 {
+	if len(cmd.Args) > 0 {
 		return errors.New("too many arguments for login command")
 	}
 	feedFollows, err := s.DB.SelectAllFeedFollowsForUser(context.Background(), user.ID)
