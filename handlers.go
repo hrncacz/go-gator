@@ -10,7 +10,6 @@ import (
 	"github.com/hrncacz/go-gator/internal/command"
 	"github.com/hrncacz/go-gator/internal/config"
 	"github.com/hrncacz/go-gator/internal/database"
-	"github.com/hrncacz/go-gator/internal/rss"
 )
 
 func middlewareLoggedIn(handler func(state *config.State, cmd command.Command, user database.User) error) func(*config.State, command.Command) error {
@@ -94,13 +93,19 @@ func handlerUsers(s *config.State, cmd command.Command) error {
 func handlerAgg(s *config.State, cmd command.Command) error {
 	if len(cmd.Args) > 1 {
 		return errors.New("too many arguments for login command")
+	} else if len(cmd.Args) < 1 {
+		return errors.New("not enough arguments")
 	}
-	feed, err := rss.FetchFeed(context.Background(), "https://www.wagslane.dev/index.xml")
+	duration, err := time.ParseDuration(cmd.Args[0])
 	if err != nil {
-		return err
+		return nil
 	}
-	fmt.Println(feed)
-	return nil
+	fmt.Printf("Collecting feeds every %vs\n", duration.Seconds())
+	ticker := time.NewTicker(duration)
+	for ; ; <-ticker.C {
+		fmt.Println("Starting fetch...")
+		scrapeFeeds(s)
+	}
 }
 
 func handlerAddFeed(s *config.State, cmd command.Command, user database.User) error {
@@ -109,11 +114,6 @@ func handlerAddFeed(s *config.State, cmd command.Command, user database.User) er
 	} else if len(cmd.Args) < 2 {
 		return errors.New("not enough arguments")
 	}
-	// user, err := s.DB.SelectUser(context.Background(), s.Cfg.CurrentUserName)
-	// if err != nil {
-	// 	return errors.New("user was not found")
-	// }
-
 	feed, err := s.DB.CreateFeed(context.Background(), database.CreateFeedParams{
 		Name:   cmd.Args[0],
 		Url:    cmd.Args[1],
@@ -151,10 +151,6 @@ func handlerFollow(s *config.State, cmd command.Command, user database.User) err
 	} else if len(cmd.Args) < 1 {
 		return errors.New("not enough arguments")
 	}
-	// user, err := s.DB.SelectUser(context.Background(), s.Cfg.CurrentUserName)
-	// if err != nil {
-	// 	return errors.New("user was not found")
-	// }
 	feed, err := s.DB.SelectFeedByUrl(context.Background(), cmd.Args[0])
 	if err != nil {
 		return errors.New("feed was not found")

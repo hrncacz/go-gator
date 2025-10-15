@@ -56,5 +56,5 @@ func clearFeed(rssFeed *RSSFeed) {
 		item.Title = html.UnescapeString(item.Title)
 		item.Description = html.UnescapeString(item.Description)
 	}
-	return
+
 }

@@ -13,7 +13,7 @@ WITH feed_follows as(
 		INNER JOIN feeds ON feed_follows.feed_id = feeds.id;
 
 -- name: SelectAllFeedFollowsForUser :many
-SELECT feed_follows.*, feeds.name
+SELECT feed_follows.*, feeds.name, feeds.last_fetched_at
 	FROM feed_follows
 	INNER JOIN feeds ON feed_follows.feed_id = feeds.id
 	WHERE feed_follows.user_id = $1;
