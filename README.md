@@ -38,18 +38,6 @@ go-gator register exampleUser
 ```
 
 ## Commands
-	cmd.Register("login", handlerLogin)
-	cmd.Register("register", handlerRegister)
-	cmd.Register("reset", handlerReset)
-	cmd.Register("users", handlerUsers)
-	cmd.Register("agg", handlerAgg)
-	cmd.Register("addfeed", middlewareLoggedIn(handlerAddFeed))
-	cmd.Register("feeds", handlerFeeds)
-	cmd.Register("follow", middlewareLoggedIn(handlerFollow))
-	cmd.Register("following", middlewareLoggedIn(handlerFollowing))
-	cmd.Register("unfollow", middlewareLoggedIn(handlerUnfollow))
-	cmd.Register("browse", middlewareLoggedIn(handlerBrowse))
-
 - `login`
     - login user
     - Arg 1 - username of registered user
