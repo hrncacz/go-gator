@@ -5,11 +5,13 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/hrncacz/go-gator/internal/command"
 	"github.com/hrncacz/go-gator/internal/config"
 	"github.com/hrncacz/go-gator/internal/database"
+	"github.com/lib/pq"
 )
 
 func middlewareLoggedIn(handler func(state *config.State, cmd command.Command, user database.User) error) func(*config.State, command.Command) error {
@@ -45,16 +47,17 @@ func handlerRegister(s *config.State, cmd command.Command) error {
 		return errors.New("too many arguments for login command")
 	}
 	name := cmd.Args[0]
-	_, err := s.DB.SelectUser(context.Background(), name)
-	if err == nil {
-		os.Exit(1)
-	}
 	user, err := s.DB.CreateUser(context.Background(), database.CreateUserParams{
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 		Name:      name,
 	})
 	if err != nil {
+		if err, ok := err.(*pq.Error); ok {
+			if err.Code == "23505" {
+				os.Exit(1)
+			}
+		}
 		os.Exit(1)
 	}
 	s.Cfg.SetUser(user.Name)
@@ -191,6 +194,28 @@ func handlerUnfollow(s *config.State, cmd command.Command, user database.User) e
 	err = s.DB.RemoveFeedFollow(context.Background(), database.RemoveFeedFollowParams{UserID: user.ID, FeedID: feed.ID})
 	if err != nil {
 		return err
+	}
+	return nil
+}
+
+func handlerBrowse(s *config.State, cmd command.Command, user database.User) error {
+	if len(cmd.Args) > 1 {
+		return errors.New("too many arguments for login command")
+	}
+	limit := int32(2)
+	if len(cmd.Args) > 0 {
+		intArg, err := strconv.Atoi(cmd.Args[0])
+		if err != nil {
+			return err
+		}
+		limit = int32(intArg)
+	}
+	posts, err := s.DB.GetPostsForUser(context.Background(), database.GetPostsForUserParams{UserID: user.ID, Limit: limit})
+	if err != nil {
+		return err
+	}
+	for _, post := range posts {
+		fmt.Println(post)
 	}
 	return nil
 }

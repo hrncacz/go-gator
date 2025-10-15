@@ -30,6 +30,7 @@ func main() {
 	cmd.Register("follow", middlewareLoggedIn(handlerFollow))
 	cmd.Register("following", middlewareLoggedIn(handlerFollowing))
 	cmd.Register("unfollow", middlewareLoggedIn(handlerUnfollow))
+	cmd.Register("browse", middlewareLoggedIn(handlerBrowse))
 	if len(os.Args) < 2 {
 		fmt.Println("not enough arguments")
 		os.Exit(1)
